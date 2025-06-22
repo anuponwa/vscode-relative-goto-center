@@ -4,11 +4,16 @@
   "description": "",
   "author": {"name": "Anupong Wannakrairot", "email": "anuponwa@scg.com"},
   "publisher": "Anupong Wannakrairot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anuponwa/vscode-relative-goto-center.git"
+  },
   "license": "MIT",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.45.0"
   },
+  "icon": "images/aw-relative.png",
   "categories": [
     "Other"
   ],
