@@ -3,7 +3,7 @@
   "displayName": "Relative Goto Center",
   "description": "",
   "author": {"name": "Anupong Wannakrairot", "email": "anuponwa@scg.com"},
-  "publisher": "Anupong Wannakrairot",
+  "publisher": "AnupongWannakrairot",
   "repository": {
     "type": "git",
     "url": "https://github.com/anuponwa/vscode-relative-goto-center.git"
