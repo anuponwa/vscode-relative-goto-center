@@ -1,9 +1,15 @@
 # Change Log
 
-All notable changes to the "relative-goto-center" extension will be documented in this file.
+### 0.1.0
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+- Fix `selectTo` from select to the first character at column 0 to the firstNonWhite character
+- Add `swapSelectionAnchor`
+- Add `selectSmartLine`
+- Add `selectUpSmart`
+- Add `gotoBracketSmart`
 
-## [Unreleased]
+### 0.0.1
 
-- Initial release
+First version that delivers the gist of this extension -- go and select to a relative line number
+
+---
