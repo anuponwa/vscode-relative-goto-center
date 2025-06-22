@@ -2,20 +2,39 @@
   "name": "relative-goto-center",
   "displayName": "Relative Goto Center",
   "description": "",
-  "author": {"name": "Anupong Wannakrairot", "email": "anuponwa@scg.com"},
+  "author": {
+    "name": "Anupong Wannakrairot",
+    "email": "anuponwa@scg.com"
+  },
   "publisher": "AnupongWannakrairot",
   "repository": {
     "type": "git",
     "url": "https://github.com/anuponwa/vscode-relative-goto-center.git"
   },
   "license": "MIT",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.45.0"
   },
   "icon": "images/aw-relative.png",
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "keyboard",
+    "cursor",
+    "jump",
+    "jumpy",
+    "goto",
+    "navigation",
+    "EasyMotion",
+    "acejump",
+    "metaGo",
+    "center",
+    "line selection",
+    "surrounding-pair",
+    "shortcuts",
+    "relative"
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
@@ -26,22 +45,61 @@
         "title": "Go to relative line and center"
       },
       {
-        "command": "relative-goto-center.select",
+        "command": "relative-goto-center.selectTo",
         "title": "Select to relative line and center"
+      },
+      {
+        "command": "relative-goto-center.swapSelectionAnchor",
+        "title": "Swap selection anchor"
+      },
+      {
+        "command": "relative-goto-center.selectSmartLine",
+        "title": "Select smart line (Add to current and down)"
+      },
+      {
+        "command": "relative-goto-center.selectUpSmart",
+        "title": "Select smart line (Add to current and up)"
+      },
+      {
+        "command": "relative-goto-center.gotoBracketSmart",
+        "title": "Go to bracket (smart, jump to matching bracket but stay inside the brackets)"
       }
     ],
     "keybindings": [
       {
         "command": "relative-goto-center.goto",
-        "key": "alt+g"
+        "key": "alt+g",
+        "when": "editorTextFocus"
       },
       {
-        "command": "relative-goto-center.select",
-        "key": "alt+shift+g"
+        "command": "relative-goto-center.selectTo",
+        "key": "alt+shift+g",
+        "when": "editorTextFocus"
       },
       {
-        "command": "relative-goto-center.select",
-        "key": "alt+s"
+        "command": "relative-goto-center.selectTo",
+        "key": "alt+s",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "relative-goto-center.swapSelectionAnchor",
+        "key": "alt+a",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "relative-goto-center.selectSmartLine",
+        "key": "ctrl+l",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "relative-goto-center.selectUpSmart",
+        "key": "ctrl+o",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "relative-goto-center.gotoBracketSmart",
+        "key": "ctrl+shift+\\",
+        "when": "editorTextFocus"
       }
     ]
   },

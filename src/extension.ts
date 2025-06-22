@@ -16,6 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
     isWholeLine: true
   });
 
+  let lastLineSelection: vscode.Selection | null = null;
+
   // Go to relative command
   const goCommand = vscode.commands.registerCommand('relative-goto-center.goto', async () => {
     // The code you place here will be executed every time your command is executed
@@ -72,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
   // Select to relative line command
-  const selectCommand = vscode.commands.registerCommand('relative-goto-center.select', async () => {
+  const selectCommand = vscode.commands.registerCommand('relative-goto-center.selectTo', async () => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
 
@@ -89,8 +91,14 @@ export function activate(context: vscode.ExtensionContext) {
 
           const current = editor.selection.active.line;
           const target = Math.max(0, Math.min(editor.document.lineCount - 1, current + delta));
-          const startPos = new vscode.Position(Math.min(current, target), 0);
-          const endPos = new vscode.Position(Math.max(current, target), editor.document.lineAt(target).text.length);
+
+          const minLine = Math.min(current, target);
+          const maxLine = Math.max(current, target);
+          const minLineText = editor.document.lineAt(minLine).text;
+
+          const firstNonWhitespaceChar = minLineText.search(/\S|$/);
+          const startPos = new vscode.Position(minLine, firstNonWhitespaceChar);
+          const endPos = new vscode.Position(maxLine, editor.document.lineAt(maxLine).text.length);
 
           editor.setDecorations(previewDecorationType, [new vscode.Range(startPos, endPos)]);
           return null;
@@ -122,18 +130,148 @@ export function activate(context: vscode.ExtensionContext) {
     const safeEnd = Math.max(0, Math.min(endLine, editor.document.lineCount - 1));
 
     // Get the positions
-    const startPos = new vscode.Position(safeStart, 0);
+    const firstNonWhitespaceChar = editor.document.lineAt(safeStart).text.search(/\S|$/);
+    const startPos = new vscode.Position(safeStart, firstNonWhitespaceChar);
     const endLineText = editor.document.lineAt(safeEnd).text;
     const endPos = new vscode.Position(safeEnd, endLineText.length);
 
     const selection = new vscode.Selection(startPos, endPos);
     editor.selection = selection;
+    lastLineSelection = selection;
     editor.revealRange(new vscode.Range(startPos, endPos), vscode.TextEditorRevealType.InCenter);
+  });
+
+  const swapSelectionCommand = vscode.commands.registerCommand('relative-goto-center.swapSelectionAnchor', () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || editor.selections.length === 0) return;
+
+    const selections = editor.selections.map(sel =>
+      new vscode.Selection(sel.active, sel.anchor) // swap anchor and active
+    );
+
+    editor.selections = selections;
+  });
+
+  const selectSmartLine = vscode.commands.registerCommand('relative-goto-center.selectSmartLine', () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return;
+
+    const doc = editor.document;
+    const currentLine = editor.selection.active.line;
+
+    let startLine: number, endLine: number;
+
+    // Expand selection if already in progress
+    if (lastLineSelection && editor.selection.isEqual(lastLineSelection)) {
+      startLine = lastLineSelection.start.line;
+      endLine = Math.min(doc.lineCount - 1, lastLineSelection.end.line + 1);
+    } else {
+      startLine = currentLine;
+      endLine = currentLine;
+    }
+
+    const startText = doc.lineAt(startLine).text;
+    const startChar = startText.search(/\S|$/); // first visible character
+
+    const startPos = new vscode.Position(startLine, startChar);
+    const endPos = doc.lineAt(endLine).range.end;
+
+    const selection = new vscode.Selection(startPos, endPos);
+    editor.selection = selection;
+
+    lastLineSelection = selection;
+
+    // Re-center the active cursor
+    editor.revealRange(
+      new vscode.Range(editor.selection.active, editor.selection.active),
+      vscode.TextEditorRevealType.InCenter
+    );
+  });
+
+  const selectUpSmart = vscode.commands.registerCommand('relative-goto-center.selectUpSmart', () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return;
+
+    const doc = editor.document;
+    const sel = editor.selection;
+
+    // No selection, ignore
+    if (sel.isEmpty) return;
+
+    const anchor = sel.anchor;
+    const active = sel.active;
+
+    const anchorLine = anchor.line;
+    const activeLine = active.line;
+
+    let startLine: number;
+    let endLine: number;
+
+    if (activeLine > anchorLine) {
+      // selection is downward — shrink one line up
+      startLine = anchorLine;
+      endLine = activeLine - 1;
+    } else {
+      // upward direction — expand one more line up
+      startLine = Math.max(0, activeLine - 1);
+      endLine = anchorLine;
+    }
+
+    const startText = doc.lineAt(startLine).text;
+    const startChar = startText.search(/\S|$/);
+    const startPos = new vscode.Position(startLine, startChar);
+    const endPos = doc.lineAt(endLine).range.end;
+
+    const selection = new vscode.Selection(endPos, startPos);
+    editor.selection = selection;
+    editor.revealRange(new vscode.Range(startPos, startPos), vscode.TextEditorRevealType.InCenter);
+
+    lastLineSelection = selection;
+  });
+
+  const jumpInsideBracket = vscode.commands.registerCommand('relative-goto-center.gotoBracketSmart', () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return;
+
+
+    const matchingPairs: Record<string, string> = {
+      '(': ')',
+      '{': '}',
+      '[': ']',
+      ')': '(',
+      '}': '{',
+      ']': '[',
+    };
+
+    // const isClosing = [')', '}', ']'].includes(currentChar);
+
+    // if (!isOpening && !isClosing) return;
+
+    // Use built-in command to find the matching bracket
+    vscode.commands.executeCommand('editor.action.jumpToBracket').then(() => {
+      const newPos = editor.selection.active;
+      const doc = editor.document;
+      const currentChar = doc.getText(new vscode.Range(newPos, newPos.translate(0, 1)));
+      const isOpening = ['(', '{', '['].includes(currentChar);
+
+      // Move inside the bracket
+      const offset = isOpening ? 1 : 0;
+      const adjusted = new vscode.Position(newPos.line, newPos.character + offset);
+      editor.selection = new vscode.Selection(adjusted, adjusted);
+      editor.revealRange(new vscode.Range(adjusted, adjusted), vscode.TextEditorRevealType.InCenter);
+    });
   });
 
   context.subscriptions.push(goCommand);
   context.subscriptions.push(selectCommand);
+  context.subscriptions.push(swapSelectionCommand);
+  context.subscriptions.push(selectSmartLine);
+  context.subscriptions.push(selectUpSmart);
+  context.subscriptions.push(jumpInsideBracket);
+
 }
+
+
 
 // This method is called when your extension is deactivated
 export function deactivate() { }
