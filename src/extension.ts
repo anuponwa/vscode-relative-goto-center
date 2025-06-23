@@ -65,7 +65,10 @@ export function activate(context: vscode.ExtensionContext) {
     // Get the new position
     const currentLine = editor.selection.active.line;
     const targetLine = Math.max(0, Math.min(editor.document.lineCount - 1, currentLine + delta));
-    const newPosition = new vscode.Position(targetLine, 0);
+
+    const targetLineText = editor.document.lineAt(targetLine).text
+    const firstNonWhitespaceChar = targetLineText.search(/\S|$/);
+    const newPosition = new vscode.Position(targetLine, firstNonWhitespaceChar);
 
     // Go to the relative line and center the viewport
     editor.selection = new vscode.Selection(newPosition, newPosition);

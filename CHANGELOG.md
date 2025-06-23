@@ -1,5 +1,8 @@
 # Change Log
 
+### 0.1.1
+- Fix `goTo` to go to the firstNonWhite character instead of column 0
+
 ### 0.1.0
 
 - Fix `selectTo` from select to the first character at column 0 to the firstNonWhite character

@@ -12,7 +12,7 @@
     "url": "https://github.com/anuponwa/vscode-relative-goto-center.git"
   },
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.45.0"
   },
@@ -28,6 +28,11 @@
     "goto",
     "navigation",
     "EasyMotion",
+    "vim",
+    "nvim",
+    "neovim",
+    "lazy",
+    "brackets",
     "acejump",
     "metaGo",
     "center",
