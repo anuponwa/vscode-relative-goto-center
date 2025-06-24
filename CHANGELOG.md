@@ -1,5 +1,10 @@
 # Change Log
 
+### 0.2.0
+- Update behavior of the `selectTo`. Now it expands the current selection.
+- The cursor ends up in the correct direction of the `selectTo`.
+- The swap cursor command recenters the active cursor.
+
 ### 0.1.1
 - Fix `goTo` to go to the firstNonWhite character instead of column 0
 

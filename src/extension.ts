@@ -117,7 +117,6 @@ export function activate(context: vscode.ExtensionContext) {
     // Always remove preview
     editor.setDecorations(previewDecorationType, []);
 
-
     const delta = parseInt(input, 10);
 
     // Find the anchor, positions, ...
@@ -125,12 +124,42 @@ export function activate(context: vscode.ExtensionContext) {
     const currentLine = anchor.line;
     const targetLine = currentLine + delta;
 
-    const startLine = Math.min(currentLine, targetLine);
-    const endLine = Math.max(currentLine, targetLine);
+    let safeStart: number;
+    let safeEnd: number;
 
-    // Clamp to file bounds
-    const safeStart = Math.max(0, Math.min(startLine, editor.document.lineCount - 1));
-    const safeEnd = Math.max(0, Math.min(endLine, editor.document.lineCount - 1));
+    // See if there's any existing selection
+    // If there is, extend the selection from existing
+    const hasSelection = !editor.selection.isEmpty;
+    if (hasSelection) {
+      // There is a selection
+
+      // current selection in the editor
+      const selection = editor.selection;
+      const selectionFirstLine = Math.min(selection.start.line, selection.end.line);
+      const selectionLastLine = Math.max(selection.start.line, selection.end.line);
+
+      // new range
+      const startLine = Math.min(currentLine, targetLine);
+      const endLine = Math.max(currentLine, targetLine);
+
+      // compare new range to the existing selection range
+      const newStart = Math.min(selectionFirstLine, startLine);
+      const newEnd = Math.max(selectionLastLine, endLine);
+
+      // Clamp
+      safeStart = Math.max(0, Math.min(newStart, editor.document.lineCount - 1));
+      safeEnd = Math.max(0, Math.min(newEnd, editor.document.lineCount - 1));
+
+    } else {
+      // No selection
+
+      const startLine = Math.min(currentLine, targetLine);
+      const endLine = Math.max(currentLine, targetLine);
+
+      // Clamp to file bounds
+      safeStart = Math.max(0, Math.min(startLine, editor.document.lineCount - 1));
+      safeEnd = Math.max(0, Math.min(endLine, editor.document.lineCount - 1));
+    }
 
     // Get the positions
     const firstNonWhitespaceChar = editor.document.lineAt(safeStart).text.search(/\S|$/);
@@ -138,10 +167,14 @@ export function activate(context: vscode.ExtensionContext) {
     const endLineText = editor.document.lineAt(safeEnd).text;
     const endPos = new vscode.Position(safeEnd, endLineText.length);
 
-    const selection = new vscode.Selection(startPos, endPos);
+    const selection = delta < 0
+      ? new vscode.Selection(endPos, startPos) // cursor at top
+      : new vscode.Selection(startPos, endPos); // cursor at bottom
+
     editor.selection = selection;
     lastLineSelection = selection;
-    editor.revealRange(new vscode.Range(startPos, endPos), vscode.TextEditorRevealType.InCenter);
+    editor.revealRange(new vscode.Range(editor.selection.active, editor.selection.active), vscode.TextEditorRevealType.InCenter);
+
   });
 
   const swapSelectionCommand = vscode.commands.registerCommand('relative-goto-center.swapSelectionAnchor', () => {
@@ -153,6 +186,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     editor.selections = selections;
+    editor.revealRange(new vscode.Range(editor.selection.active, editor.selection.active), vscode.TextEditorRevealType.InCenter);
+
   });
 
   const selectSmartLine = vscode.commands.registerCommand('relative-goto-center.selectSmartLine', () => {

@@ -1,7 +1,7 @@
 {
   "name": "relative-goto-center",
   "displayName": "Relative Goto Center",
-  "description": "",
+  "description": "Relative goTo and selectTo, provide other functionalities as well such as go to matching brackets and swap selection cursor.",
   "author": {
     "name": "Anupong Wannakrairot",
     "email": "anuponwa@scg.com"
@@ -12,7 +12,7 @@
     "url": "https://github.com/anuponwa/vscode-relative-goto-center.git"
   },
   "license": "MIT",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.45.0"
   },
